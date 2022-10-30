@@ -18,11 +18,4 @@ public class TelegramConfig {
     @Value("${telegram.bot-token}")
     String botToken;
 
-//    @Value("https://d9b9-5-18-185-122.eu.ngrok.io/telegram/")
-//    String webhookPath;
-//    @Value("WatchLatterYoutubeBot")
-//    String botUsername;
-//    @Value("5471216892:AAGYuD11eAm40wKKctOcRIeTTTosvE_XzZo")
-//    String botToken;
-
 }
