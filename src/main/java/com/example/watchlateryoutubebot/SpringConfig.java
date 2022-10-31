@@ -1,6 +1,8 @@
 package com.example.watchlateryoutubebot;
 import com.example.watchlateryoutubebot.configurations.GoogleConfig;
 import com.example.watchlateryoutubebot.configurations.TelegramConfig;
+import com.example.watchlateryoutubebot.repositories.TestEntityRepository;
+import com.example.watchlateryoutubebot.services.TestEntityService;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -22,6 +24,7 @@ public class SpringConfig {
     private final TelegramConfig telegramConfig;
     private final GoogleConfig googleConfig;
     private final CredentialRepository credentialRepository;
+    private final TestEntityRepository testEntityRepository;
 
 
     @Bean
@@ -51,6 +54,10 @@ public class SpringConfig {
         return new MyDataStoreFactory(credentialRepository);
     }
 
+    @Bean
+    public TestEntityService myTestEntityService() {
+        return new TestEntityService(testEntityRepository);
+    }
 
     @Bean
     public GoogleAuthorizationCodeFlow googleAuthorizationCodeFlow() throws IOException {
