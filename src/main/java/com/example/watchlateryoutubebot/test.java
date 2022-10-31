@@ -30,7 +30,7 @@ public class test {
             GsonFactory.getDefaultInstance(),
             googleConfig.getClientId(),
             googleConfig.getClientSecret(),
-            Arrays.asList("https://www.googleapis.com/auth/youtube.force-ssl", "https://www.googleapis.com/auth/youtube.readonly"))
+            googleConfig.getScopeAsArrayAsList())
             .setCredentialDataStore(StoredCredential.getDefaultDataStore(fileDataStoreFactory))
             .setAccessType("offline")
             .build();

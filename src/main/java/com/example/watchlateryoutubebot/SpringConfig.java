@@ -59,7 +59,7 @@ public class SpringConfig {
                 GsonFactory.getDefaultInstance(),
                 googleConfig.getClientId(),
                 googleConfig.getClientSecret(),
-                Arrays.asList("https://www.googleapis.com/auth/youtube.force-ssl", "https://www.googleapis.com/auth/youtube.readonly"))
+                googleConfig.getScopeAsArrayAsList())
                 .setCredentialDataStore(StoredCredential.getDefaultDataStore(myDataStoreFactory()))
                 .setAccessType("offline")
                 //TODO сделать переменную для offline
