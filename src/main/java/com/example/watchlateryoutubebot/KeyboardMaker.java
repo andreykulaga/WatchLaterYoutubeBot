@@ -2,7 +2,9 @@ package com.example.watchlateryoutubebot;
 
 import com.example.watchlateryoutubebot.constants.ButtonNameEnum;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
@@ -10,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class ReplyKeyboardMaker {
+public class KeyboardMaker {
 
     public ReplyKeyboardMarkup getMainMenuKeyboard() {
         KeyboardRow row1 = new KeyboardRow();
@@ -25,6 +27,8 @@ public class ReplyKeyboardMaker {
         List<KeyboardRow> keyboard = new ArrayList<>();
         keyboard.add(row1);
         keyboard.add(row2);
+        keyboard.add(row3);
+
 
         final ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
         replyKeyboardMarkup.setKeyboard(keyboard);
@@ -33,5 +37,22 @@ public class ReplyKeyboardMaker {
         replyKeyboardMarkup.setOneTimeKeyboard(false);
 
         return replyKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getListOfPlaylistToChoose(List<String> playlists) {
+        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+        for (String playlist: playlists) {
+            InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+            inlineKeyboardButton.setText(playlist);
+            inlineKeyboardButton.setCallbackData(playlist);
+
+            ArrayList<InlineKeyboardButton> row = new ArrayList<>();
+            row.add(inlineKeyboardButton);
+            keyboard.add(row);
+        }
+
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        inlineKeyboardMarkup.setKeyboard(keyboard);
+        return inlineKeyboardMarkup;
     }
 }

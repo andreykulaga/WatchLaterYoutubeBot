@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
@@ -28,11 +29,13 @@ public class WatchLaterYoutubeBot extends TelegramWebhookBot {
     String botToken;
 
     private final MessageHandler messageHandler;
+    private final CallbackQueryHandler callbackQueryHandler;
 
     public WatchLaterYoutubeBot(SetWebhook setWebhook,
-                                MessageHandler messageHandler) {
+                                MessageHandler messageHandler, CallbackQueryHandler callbackQueryHandler) {
         super();
         this.messageHandler = messageHandler;
+        this.callbackQueryHandler = callbackQueryHandler;
     }
 
     //       if (update.getMessage().getText().equalsIgnoreCase("/authorize")) {
@@ -58,8 +61,8 @@ public class WatchLaterYoutubeBot extends TelegramWebhookBot {
     private BotApiMethod<?> handleUpdate(Update update) throws IOException {
         if (update.hasCallbackQuery()) {
             CallbackQuery callbackQuery = update.getCallbackQuery();
-//            return callbackQueryHandler.processCallbackQuery(callbackQuery);
-            return messageHandler.answerMessage(update.getMessage());
+            return callbackQueryHandler.answerCallbackQuery(callbackQuery);
+//            return messageHandler.answerMessage(update.getMessage());
         } else {
             Message message = update.getMessage();
             if (message != null) {

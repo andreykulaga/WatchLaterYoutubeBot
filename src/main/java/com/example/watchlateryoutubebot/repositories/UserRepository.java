@@ -1,4 +1,4 @@
-package com.example.watchlateryoutubebot;
+package com.example.watchlateryoutubebot.repositories;
 
 import com.example.watchlateryoutubebot.models.TelegramUser;
 import org.springframework.data.jpa.repository.JpaRepository;
