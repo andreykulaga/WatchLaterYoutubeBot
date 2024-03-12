@@ -1,19 +1,17 @@
 package com.example.watchlateryoutubebot;
 import com.example.watchlateryoutubebot.configurations.GoogleConfig;
 import com.example.watchlateryoutubebot.configurations.TelegramConfig;
+import com.example.watchlateryoutubebot.repositories.CredentialRepository;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 
 
 @Configuration
@@ -30,8 +28,8 @@ public class SpringConfig {
     }
 
     @Bean
-    public WatchLaterYoutubeBot springWebhookBot(SetWebhook setWebhook, MessageHandler messageHandler) {
-        WatchLaterYoutubeBot bot = new WatchLaterYoutubeBot(setWebhook, messageHandler);
+    public WatchLaterYoutubeBot springWebhookBot(SetWebhook setWebhook, MessageHandler messageHandler, CallbackQueryHandler callbackQueryHandler) {
+        WatchLaterYoutubeBot bot = new WatchLaterYoutubeBot(setWebhook, messageHandler, callbackQueryHandler);
 
         bot.setBotPath(telegramConfig.getWebhookPath());
         bot.setBotUsername(telegramConfig.getBotName());

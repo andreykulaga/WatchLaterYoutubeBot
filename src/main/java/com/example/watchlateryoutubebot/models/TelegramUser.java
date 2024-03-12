@@ -1,9 +1,6 @@
 package com.example.watchlateryoutubebot.models;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 
 import javax.persistence.Entity;
@@ -21,4 +18,10 @@ public class TelegramUser {
 
     private String userName;
     private String playlist;
+    private boolean scopeIsEnough;
+
+    public TelegramUser(String telegramId, String userName) {
+        this.telegramId = telegramId;
+        this.userName = userName;
+    }
 }

@@ -1,6 +1,7 @@
 package com.example.watchlateryoutubebot;
 
 import com.example.watchlateryoutubebot.models.MyStoredCredential;
+import com.example.watchlateryoutubebot.repositories.CredentialRepository;
 import com.google.api.client.auth.oauth2.StoredCredential;
 import com.google.api.client.util.IOUtils;
 import com.google.api.client.util.Preconditions;
@@ -11,9 +12,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
-import org.springframework.stereotype.Component;
 
-import javax.persistence.TypedQuery;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;

@@ -17,10 +17,6 @@ public class GoogleAuthCodeController {
     private final GoogleAuthorizationCodeFlow authorizationCodeFlow;
     private final GoogleConfig googleConfig;
 
-
-
-
-
     @GetMapping("/googleapiresponse/code")
     public RedirectView onAuthCodeReceived (@RequestParam String code, String scope, String state) throws IOException {
         //TODO add check for scope, it should be equal to requested scope
@@ -29,11 +25,8 @@ public class GoogleAuthCodeController {
         GoogleTokenResponse response = authorizationCodeFlow.newTokenRequest(code)
                 .setRedirectUri(googleConfig.getRedirectUri())
                 .execute();
-        System.out.println("token is " + response.getAccessToken());
-        System.out.println("refresh token is " + response.getRefreshToken());
+
         authorizationCodeFlow.createAndStoreCredential(response, state);
-        System.out.println("credential created " + authorizationCodeFlow.loadCredential(state).getAccessToken());
         return new RedirectView(googleConfig.getRedirectUriAfterTokenReceived());
     }
-
 }

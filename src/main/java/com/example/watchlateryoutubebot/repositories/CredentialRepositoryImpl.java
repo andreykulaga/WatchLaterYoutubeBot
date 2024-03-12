@@ -1,4 +1,4 @@
-package com.example.watchlateryoutubebot;
+package com.example.watchlateryoutubebot.repositories;
 
 import com.example.watchlateryoutubebot.models.MyStoredCredential;
 import com.google.api.client.auth.oauth2.StoredCredential;
