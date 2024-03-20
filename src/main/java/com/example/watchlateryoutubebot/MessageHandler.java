@@ -8,6 +8,7 @@ import com.example.watchlateryoutubebot.repositories.CredentialRepository;
 import com.example.watchlateryoutubebot.repositories.UserRepository;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.youtube.YouTube;
@@ -98,7 +99,7 @@ public class MessageHandler {
         List<String> playlists = new ArrayList<>();
         try {
             Credential credential = authorizationCodeFlow.loadCredential(userId);
-            System.out.println("credential loaded for " + userId);
+//            System.out.println("credential loaded for " + userId);
             YouTube youtubeService = new YouTube.Builder(
                     GoogleNetHttpTransport.newTrustedTransport(),
                     GsonFactory.getDefaultInstance(),
@@ -119,6 +120,9 @@ public class MessageHandler {
 //            for (String item:playlists) {
 //                message = message.concat(item);
 //            }
+        }  catch (TokenResponseException e) {
+            //if token is revoked send a message to give authorization again
+            return getAuthMessage(chatId, userId);
         } catch (IOException | GeneralSecurityException e) {
             throw new RuntimeException(e);
         }

@@ -2,7 +2,7 @@ package com.example.watchlateryoutubebot;
 import com.example.watchlateryoutubebot.configurations.GoogleConfig;
 import com.example.watchlateryoutubebot.configurations.TelegramConfig;
 import com.example.watchlateryoutubebot.repositories.CredentialRepository;
-import com.google.api.client.auth.oauth2.StoredCredential;
+import com.google.api.client.auth.oauth2.*;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 
 import java.io.IOException;
+import java.util.List;
 
 
 @Configuration
