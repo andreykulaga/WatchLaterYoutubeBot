@@ -17,7 +17,8 @@ public class TelegramUser {
     private String telegramId;
 
     private String userName;
-    private String playlist;
+    private String playlistName;
+    private String playlistId;
     private boolean scopeIsEnough;
 
     public TelegramUser(String telegramId, String userName) {

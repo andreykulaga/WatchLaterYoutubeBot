@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Component
@@ -39,12 +40,12 @@ public class KeyboardMaker {
         return replyKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getListOfPlaylistToChoose(List<String> playlists) {
+    public InlineKeyboardMarkup getListOfPlaylistToChoose(HashMap<String, String> playlists) {
         List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
-        for (String playlist: playlists) {
+        for (String id: playlists.keySet()) {
             InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
-            inlineKeyboardButton.setText(playlist);
-            inlineKeyboardButton.setCallbackData(playlist);
+            inlineKeyboardButton.setText(playlists.get(id));
+            inlineKeyboardButton.setCallbackData(id + " " + playlists.get(id));
 
             ArrayList<InlineKeyboardButton> row = new ArrayList<>();
             row.add(inlineKeyboardButton);

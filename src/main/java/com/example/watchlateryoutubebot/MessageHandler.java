@@ -4,7 +4,7 @@ import com.example.watchlateryoutubebot.configurations.GoogleConfig;
 import com.example.watchlateryoutubebot.configurations.TelegramConfig;
 import com.example.watchlateryoutubebot.constants.BotMessageEnum;
 import com.example.watchlateryoutubebot.constants.ButtonNameEnum;
-import com.example.watchlateryoutubebot.repositories.CredentialRepository;
+import com.example.watchlateryoutubebot.models.TelegramUser;
 import com.example.watchlateryoutubebot.repositories.UserRepository;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
 import com.google.api.client.auth.oauth2.Credential;
@@ -12,18 +12,22 @@ import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.model.PlaylistItem;
+import com.google.api.services.youtube.model.PlaylistItemSnippet;
 import com.google.api.services.youtube.model.PlaylistListResponse;
+import com.google.api.services.youtube.model.ResourceId;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 
+import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -33,12 +37,23 @@ public class MessageHandler {
     private final AuthorizationCodeFlow authorizationCodeFlow;
     private final TelegramConfig telegramConfig;
     private final UserRepository userRepository;
-    private final CredentialRepository credentialRepository;
 
     public BotApiMethod<?> answerMessage(Message message) {
         String userId = String.valueOf(message.getFrom().getId());
         String chatId = message.getChatId().toString();
         String inputText = message.getText();
+
+        List<MessageEntity> messageEntities;
+        List<String> textLinks = new ArrayList<>();
+        if (message.hasEntities()) {
+            messageEntities = message.getEntities();
+            System.out.println(messageEntities);
+            textLinks = messageEntities.stream()
+                    .filter(t -> t.getType().equalsIgnoreCase("url"))
+                    .map(t -> t.getText())
+                    .collect(Collectors.toList());
+            System.out.println(textLinks);
+        }
 
         if (inputText == null) {
             throw new IllegalArgumentException();
@@ -55,6 +70,8 @@ public class MessageHandler {
         } else if (inputText.equals(ButtonNameEnum.HELP_BUTTON.getButtonName())) {
             //show start message with bot description
             return getStartMessage(chatId);
+        } else if (!textLinks.isEmpty()) {
+            return processLink(chatId, userId, textLinks);
         } else {
             return new SendMessage(chatId, BotMessageEnum.NON_COMMAND_MESSAGE.getMessage());
         }
@@ -74,13 +91,13 @@ public class MessageHandler {
         return sendMessage;
     }
 
-    private SendMessage everythingIsReadyMessage(String chatId, String playlistName) {
-        String message = BotMessageEnum.EVERYTHING_IS_READY_MESSAGE.getMessage().replace("playlistName", playlistName);
-        SendMessage sendMessage = new SendMessage(chatId, message);
-        sendMessage.enableMarkdown(true);
-//        sendMessage.setReplyMarkup(replyKeyboardMaker.getMainMenuKeyboard());
-        return sendMessage;
-    }
+//    private SendMessage everythingIsReadyMessage(String chatId, String playlistName) {
+//        String message = BotMessageEnum.EVERYTHING_IS_READY_MESSAGE.getMessage().replace("playlistName", playlistName);
+//        SendMessage sendMessage = new SendMessage(chatId, message);
+//        sendMessage.enableMarkdown(true);
+////        sendMessage.setReplyMarkup(replyKeyboardMaker.getMainMenuKeyboard());
+//        return sendMessage;
+//    }
 
     private SendMessage getAuthMessage(String chatId, String userId) {
         String authUrl = authorizationCodeFlow.newAuthorizationUrl()
@@ -96,7 +113,7 @@ public class MessageHandler {
 
     private SendMessage configureMyPlayListsMessage(String chatId, String userId) {
         String message = "Please press on a playlist you want me to use to save videos.\n";
-        List<String> playlists = new ArrayList<>();
+        HashMap<String, String> playlists = new HashMap<>();
         try {
             Credential credential = authorizationCodeFlow.loadCredential(userId);
 //            System.out.println("credential loaded for " + userId);
@@ -115,7 +132,7 @@ public class MessageHandler {
 
 //            List<String> playlists = new ArrayList<>();
 //            response.getItems().forEach(t -> playlists.add("- " + t.getSnippet().getTitle() + "\n"));
-            response.getItems().forEach(t -> playlists.add(t.getSnippet().getTitle()));
+            response.getItems().forEach(t -> playlists.put(t.getId(), t.getSnippet().getTitle()));
 
 //            for (String item:playlists) {
 //                message = message.concat(item);
@@ -130,6 +147,73 @@ public class MessageHandler {
         SendMessage sendMessage = new SendMessage(chatId, message);
         sendMessage.enableMarkdown(true);
         sendMessage.setReplyMarkup(keyboardMaker.getListOfPlaylistToChoose(playlists));
+        return sendMessage;
+    }
+
+    private SendMessage processLink(String chatId, String userId, List<String> textLinks) {
+        try {
+            Credential credential = authorizationCodeFlow.loadCredential(userId);
+
+            YouTube youtubeService = new YouTube.Builder(
+                    GoogleNetHttpTransport.newTrustedTransport(),
+                    GsonFactory.getDefaultInstance(),
+                    credential)
+                    .setApplicationName(telegramConfig.getBotName())
+                    .build();
+
+            TelegramUser user = userRepository.getReferenceById(userId);
+            String playListName = user.getPlaylistName();
+            if (playListName == null) {
+                return configureMyPlayListsMessage(chatId, userId);
+            }
+
+
+//            PlaylistItem playlistItem = new PlaylistItem();
+//            PlaylistItemSnippet snippet = new PlaylistItemSnippet();
+//            snippet.setPlaylistId(user.getPlaylistId());
+//            snippet.setResourceId(new PlaylistItemSnippet.ResourceId().setKind("youtube#video").setVideoId(VIDEO_ID));
+//            playlistItem.setSnippet(snippet);
+////
+//            // Вставка видео в плейлист
+//            youtube.playlistItems().insert("snippet,contentDetails", playlistItem).execute();
+
+
+            YouTube.Playlists.List request = youtubeService.playlists()
+                    .list(Arrays.asList("snippet"))
+                    .setId(Arrays.asList(user.getPlaylistId()));
+
+            PlaylistItemSnippet snippet = new PlaylistItemSnippet();
+            snippet.setPlaylistId(user.getPlaylistId());
+
+            ResourceId resourceId = new ResourceId();
+            resourceId.setKind("youtube#video");
+            //todo add processing of all links, not only first one
+            //todo check for the link being youtube link and parsing videoId
+            String videoId = textLinks.get(0);
+            resourceId.setVideoId(videoId);
+
+            snippet.setResourceId(resourceId);
+
+            PlaylistItem playlistItem = new PlaylistItem();
+            playlistItem.setSnippet(snippet);
+
+            youtubeService.playlistItems().insert(Collections.singletonList("snippet,contentDetails"), playlistItem).execute();
+
+
+        }  catch (TokenResponseException e) {
+            //if token is revoked send a message to give authorization again
+            return getAuthMessage(chatId, userId);
+        }  catch (EntityNotFoundException e) {
+            //TODO how to handle if there is no user in database
+            return getAuthMessage(chatId, userId);
+        } catch (IOException | GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        }
+
+        String message = "пока это не работает";
+        SendMessage sendMessage = new SendMessage(chatId, message);
+        sendMessage.enableMarkdown(true);
+        sendMessage.setReplyMarkup(keyboardMaker.getMainMenuKeyboard());
         return sendMessage;
     }
 }
