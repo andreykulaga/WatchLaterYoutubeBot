@@ -37,6 +37,7 @@ public class MessageHandler {
     private final AuthorizationCodeFlow authorizationCodeFlow;
     private final TelegramConfig telegramConfig;
     private final UserRepository userRepository;
+    private final YoutubeService youtubeService;
 
     public BotApiMethod<?> answerMessage(Message message) {
         String userId = String.valueOf(message.getFrom().getId());
@@ -47,12 +48,10 @@ public class MessageHandler {
         List<String> textLinks = new ArrayList<>();
         if (message.hasEntities()) {
             messageEntities = message.getEntities();
-            System.out.println(messageEntities);
             textLinks = messageEntities.stream()
                     .filter(t -> t.getType().equalsIgnoreCase("url"))
                     .map(t -> t.getText())
                     .collect(Collectors.toList());
-            System.out.println(textLinks);
         }
 
         if (inputText == null) {
@@ -113,34 +112,17 @@ public class MessageHandler {
 
     private SendMessage configureMyPlayListsMessage(String chatId, String userId) {
         String message = "Please press on a playlist you want me to use to save videos.\n";
-        HashMap<String, String> playlists = new HashMap<>();
+        HashMap<String, String> playlists;
         try {
-            Credential credential = authorizationCodeFlow.loadCredential(userId);
-//            System.out.println("credential loaded for " + userId);
-            YouTube youtubeService = new YouTube.Builder(
-                    GoogleNetHttpTransport.newTrustedTransport(),
-                    GsonFactory.getDefaultInstance(),
-                    credential)
-                    .setApplicationName(telegramConfig.getBotName())
-                    .build();
-            YouTube.Playlists.List request = youtubeService.playlists()
-                    .list(Arrays.asList("snippet"));
-            //todo: change all literals to variables
-            PlaylistListResponse response = request.setMaxResults(25L)
-                    .setMine(true)
-                    .execute();
-
-//            List<String> playlists = new ArrayList<>();
-//            response.getItems().forEach(t -> playlists.add("- " + t.getSnippet().getTitle() + "\n"));
-            response.getItems().forEach(t -> playlists.put(t.getId(), t.getSnippet().getTitle()));
-
-//            for (String item:playlists) {
-//                message = message.concat(item);
-//            }
+            playlists = youtubeService.returnAllPlaylists(userId);
         }  catch (TokenResponseException e) {
             //if token is revoked send a message to give authorization again
             return getAuthMessage(chatId, userId);
+        }  catch (EntityNotFoundException e) {
+            //TODO how to handle if there is no user in database
+            return getAuthMessage(chatId, userId);
         } catch (IOException | GeneralSecurityException e) {
+            System.out.println(e.getMessage());
             throw new RuntimeException(e);
         }
 
@@ -151,55 +133,17 @@ public class MessageHandler {
     }
 
     private SendMessage processLink(String chatId, String userId, List<String> textLinks) {
+
+        //todo how to handle if there is no userId in database
+        TelegramUser user = userRepository.getReferenceById(userId);
+        String playListName = user.getPlaylistName();
+        if (playListName == null) {
+            return configureMyPlayListsMessage(chatId, userId);
+        }
+
+        String titleOdAddedVideo;
         try {
-            Credential credential = authorizationCodeFlow.loadCredential(userId);
-
-            YouTube youtubeService = new YouTube.Builder(
-                    GoogleNetHttpTransport.newTrustedTransport(),
-                    GsonFactory.getDefaultInstance(),
-                    credential)
-                    .setApplicationName(telegramConfig.getBotName())
-                    .build();
-
-            TelegramUser user = userRepository.getReferenceById(userId);
-            String playListName = user.getPlaylistName();
-            if (playListName == null) {
-                return configureMyPlayListsMessage(chatId, userId);
-            }
-
-
-//            PlaylistItem playlistItem = new PlaylistItem();
-//            PlaylistItemSnippet snippet = new PlaylistItemSnippet();
-//            snippet.setPlaylistId(user.getPlaylistId());
-//            snippet.setResourceId(new PlaylistItemSnippet.ResourceId().setKind("youtube#video").setVideoId(VIDEO_ID));
-//            playlistItem.setSnippet(snippet);
-////
-//            // Вставка видео в плейлист
-//            youtube.playlistItems().insert("snippet,contentDetails", playlistItem).execute();
-
-
-            YouTube.Playlists.List request = youtubeService.playlists()
-                    .list(Arrays.asList("snippet"))
-                    .setId(Arrays.asList(user.getPlaylistId()));
-
-            PlaylistItemSnippet snippet = new PlaylistItemSnippet();
-            snippet.setPlaylistId(user.getPlaylistId());
-
-            ResourceId resourceId = new ResourceId();
-            resourceId.setKind("youtube#video");
-            //todo add processing of all links, not only first one
-            //todo check for the link being youtube link and parsing videoId
-            String videoId = textLinks.get(0);
-            resourceId.setVideoId(videoId);
-
-            snippet.setResourceId(resourceId);
-
-            PlaylistItem playlistItem = new PlaylistItem();
-            playlistItem.setSnippet(snippet);
-
-            youtubeService.playlistItems().insert(Collections.singletonList("snippet,contentDetails"), playlistItem).execute();
-
-
+            titleOdAddedVideo = youtubeService.addVideos(user, textLinks);
         }  catch (TokenResponseException e) {
             //if token is revoked send a message to give authorization again
             return getAuthMessage(chatId, userId);
@@ -207,10 +151,11 @@ public class MessageHandler {
             //TODO how to handle if there is no user in database
             return getAuthMessage(chatId, userId);
         } catch (IOException | GeneralSecurityException e) {
+            System.out.println(e.getMessage());
             throw new RuntimeException(e);
         }
 
-        String message = "пока это не работает";
+        String message = "video \"" + titleOdAddedVideo + "\" added to \"" + playListName + "\" playlist";
         SendMessage sendMessage = new SendMessage(chatId, message);
         sendMessage.enableMarkdown(true);
         sendMessage.setReplyMarkup(keyboardMaker.getMainMenuKeyboard());
