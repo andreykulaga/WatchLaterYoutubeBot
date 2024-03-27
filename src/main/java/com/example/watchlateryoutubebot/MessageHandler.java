@@ -4,18 +4,11 @@ import com.example.watchlateryoutubebot.configurations.GoogleConfig;
 import com.example.watchlateryoutubebot.configurations.TelegramConfig;
 import com.example.watchlateryoutubebot.constants.BotMessageEnum;
 import com.example.watchlateryoutubebot.constants.ButtonNameEnum;
+import com.example.watchlateryoutubebot.exceptions.UnsupportedServiceException;
 import com.example.watchlateryoutubebot.models.TelegramUser;
 import com.example.watchlateryoutubebot.repositories.UserRepository;
 import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
-import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.auth.oauth2.TokenResponseException;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.model.PlaylistItem;
-import com.google.api.services.youtube.model.PlaylistItemSnippet;
-import com.google.api.services.youtube.model.PlaylistListResponse;
-import com.google.api.services.youtube.model.ResourceId;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -25,6 +18,7 @@ import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 
 import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +32,7 @@ public class MessageHandler {
     private final TelegramConfig telegramConfig;
     private final UserRepository userRepository;
     private final YoutubeService youtubeService;
+    private final LinkParser linkParser;
 
     public BotApiMethod<?> answerMessage(Message message) {
         String userId = String.valueOf(message.getFrom().getId());
@@ -141,21 +136,47 @@ public class MessageHandler {
             return configureMyPlayListsMessage(chatId, userId);
         }
 
-        String titleOdAddedVideo;
-        try {
-            titleOdAddedVideo = youtubeService.addVideos(user, textLinks);
-        }  catch (TokenResponseException e) {
-            //if token is revoked send a message to give authorization again
-            return getAuthMessage(chatId, userId);
-        }  catch (EntityNotFoundException e) {
-            //TODO how to handle if there is no user in database
-            return getAuthMessage(chatId, userId);
-        } catch (IOException | GeneralSecurityException e) {
-            System.out.println(e.getMessage());
-            throw new RuntimeException(e);
+        //filter textLinks for YouTube
+        List<String> youTubeVideoIds = textLinks.stream().filter(t -> {
+            try {
+                return linkParser.whatServiceIsIt(t).equalsIgnoreCase("YouTube");
+            } catch (UnsupportedServiceException | URISyntaxException e) {
+                return false;
+            }
+        })
+                .map(t -> linkParser.getVideoIdFromLink(t))
+                .filter(t -> t != null)
+                .collect(Collectors.toList());
+
+
+        List<String> titlesOfAddedVideo = new ArrayList<>();
+        for (String st: youTubeVideoIds) {
+            try {
+                titlesOfAddedVideo.add(youtubeService.addVideo(user, st));
+            }  catch (TokenResponseException e) {
+                //if token is revoked send a message to give authorization again
+                return getAuthMessage(chatId, userId);
+            }  catch (EntityNotFoundException e) {
+                //TODO how to handle if there is no user in database
+                return getAuthMessage(chatId, userId);
+            } catch (IOException | GeneralSecurityException e) {
+                System.out.println(e.getMessage());
+                throw new RuntimeException(e);
+            }
         }
 
-        String message = "video \"" + titleOdAddedVideo + "\" added to \"" + playListName + "\" playlist";
+
+        StringBuilder stringBuilder = new StringBuilder();
+        if (titlesOfAddedVideo.isEmpty()) {
+            stringBuilder.append("I could not add any of the videos");
+        } else {
+            stringBuilder.append("Videos added to \"" + playListName + "\" playlist: \n");
+            for (String string: titlesOfAddedVideo) {
+                stringBuilder.append("✅ " + string + "\n");
+            }
+        }
+
+        String message = stringBuilder.toString();
         SendMessage sendMessage = new SendMessage(chatId, message);
         sendMessage.enableMarkdown(true);
         sendMessage.setReplyMarkup(keyboardMaker.getMainMenuKeyboard());
