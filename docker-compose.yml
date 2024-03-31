@@ -1,0 +1,32 @@
+version: '3.7'
+
+services:
+  spring_boot_app:
+    container_name: telegram-bot
+#    image: f0c1d03bd313
+    image: eclipse-temurin:21-alpine
+    volumes:
+      - /Users/andreykulaga/Documents/WatchLaterYoutubeBot/target:/app
+      - /Users/andreykulaga/Documents/MySecrets/WatchLaterYoutubeBot:/run/secrets/my_secrets
+    ports:
+      - "8080:8080"
+    depends_on:
+      - my-postgres-container
+    command: >
+      sh -c "while ! nc -z my-postgres-container 5432; do sleep 1; done;
+             java -jar /app/WatchLaterYoutubeBot-0.0.1-SNAPSHOT.jar"
+
+  my-postgres-container:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: qwerty
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:

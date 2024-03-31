@@ -24,13 +24,20 @@ public class LinkParser {
     String getVideoIdFromLink(String link) {
         try {
             URI uri = new URI(link);
-            String query = uri.getQuery();
-            if (query != null) {
-                String[] strings = query.split("&");
-                for (String st: strings) {
-                    String[] splittedSt = st.split("=");
-                    if (splittedSt[0].equalsIgnoreCase("v")) {
-                        return splittedSt[1];
+            String host = uri.getHost();
+            if (uri.getHost().equalsIgnoreCase("youtu.be")) {
+                //take a path of the shortened link and get rid of "/"
+                return uri.getPath().substring(1);
+            } else {
+                //take all query elements and search for "v" element, return it's value
+                String query = uri.getQuery();
+                if (query != null) {
+                    String[] strings = query.split("&");
+                    for (String st: strings) {
+                        String[] splittedSt = st.split("=");
+                        if (splittedSt[0].equalsIgnoreCase("v")) {
+                            return splittedSt[1];
+                        }
                     }
                 }
             }
