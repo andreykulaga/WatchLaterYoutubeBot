@@ -31,6 +31,7 @@ public class LinkParser {
             } else {
                 //take all query elements and search for "v" element, return it's value
                 String query = uri.getQuery();
+                //todo использовать бибилотерку, возможно Spring для обработки параметров
                 if (query != null) {
                     String[] strings = query.split("&");
                     for (String st: strings) {

@@ -16,10 +16,15 @@ import java.util.HashMap;
 public class WatchLaterYoutubeBotApplication {
 
     public static void main(String[] args) {
-        String[] propertiesToChange = SecretPropertySetter.readSecretFromFile();
-        SpringApplicationBuilder springApplicationBuilder = new SpringApplicationBuilder(WatchLaterYoutubeBotApplication.class)
-                .properties(propertiesToChange).properties();
-        springApplicationBuilder.run(args);
+//        //read secrets from the file
+//        String[] propertiesToChange = SecretPropertySetter.readSecretFromFile();
+//        //set secret as the properties
+//        SpringApplicationBuilder springApplicationBuilder = new SpringApplicationBuilder(WatchLaterYoutubeBotApplication.class)
+//                .properties(propertiesToChange).properties();
+//        //run the app
+//        springApplicationBuilder.run(args);
+
+        SpringApplication.run(WatchLaterYoutubeBotApplication.class, args);
 
     }
 

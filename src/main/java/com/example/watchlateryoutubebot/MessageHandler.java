@@ -149,6 +149,7 @@ public class MessageHandler {
                 .collect(Collectors.toList());
 
 
+        //todo если видео уже есть в плейлисте, то спросить нужно ли сохранять его еще раз
         List<String> titlesOfAddedVideo = new ArrayList<>();
         for (String st: youTubeVideoIds) {
             try {

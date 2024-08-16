@@ -30,13 +30,14 @@ public class GoogleAuthCodeController {
             //TODO add new user to database of users or update in existing user
         }
 
-        System.out.println("code is " + code);
-        System.out.println(("user name is " + state));
+//        System.out.println("code is " + code);
+//        System.out.println(("user name is " + state));
         GoogleTokenResponse response = authorizationCodeFlow.newTokenRequest(code)
                 .setRedirectUri(googleConfig.getRedirectUri())
                 .execute();
 
         authorizationCodeFlow.createAndStoreCredential(response, state);
         return new RedirectView(googleConfig.getRedirectUriAfterTokenReceived());
+        //todo отправлять сообщение о статусе получения какого-либо scope (не по вебхуку)
     }
 }
