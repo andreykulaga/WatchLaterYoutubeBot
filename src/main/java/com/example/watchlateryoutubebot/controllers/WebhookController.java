@@ -2,6 +2,7 @@ package com.example.watchlateryoutubebot.controllers;
 
 import com.example.watchlateryoutubebot.WatchLaterYoutubeBot;
 import lombok.AllArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,5 +17,12 @@ public class WebhookController {
     @PostMapping("/")
     public BotApiMethod<?> onUpdateReceived(@RequestBody Update update) {
         return watchLaterYoutubeBot.onWebhookUpdateReceived(update);
+    }
+
+    // Handle GET requests to the /webhook endpoint
+    @GetMapping("/")
+    public String handleGetRequest() {
+        // You can return a message or perform some logic here
+        return "Webhook endpoint is active";
     }
 }
