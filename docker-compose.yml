@@ -5,17 +5,13 @@ services:
     image: eclipse-temurin:21-alpine
   # need to insert your own secrets and addresses
     environment:
-      google.clientId: *
-      server.ssl.key-alias: *
-      server.ssl.key-store-password: *
-      telegram.webhook-path: *
-      telegram.bot-token: *
-      google.clientSecret: *
-      google.redirectionUri: *
+      google.clientId: 149242102535-5uo3kngi681dsqp97d6kocntg8esh0ib.apps.googleusercontent.com
+      server.ssl.key-alias: ec2-16-171-168-150.eu-north-1.compute.amazonaws.com
+      server.ssl.key-store-password: gor2set
+      telegram.webhook-path: https://ec2-16-171-168-150.eu-north-1.compute.amazonaws.com
+      google.redirectionUri: https://ec2-16-171-168-150.eu-north-1.compute.amazonaws.com:8443/googleapiresponse/code
     volumes:
       - /home/ubuntu:/app
-#      - /Users/andreykulaga/Documents/WatchLaterYoutubeBot/target:/app
-#      - /Users/andreykulaga/Documents/MySecrets/WatchLaterYoutubeBot:/run/secrets/my_secrets
     ports:
       - "8443:8443"
     depends_on:
