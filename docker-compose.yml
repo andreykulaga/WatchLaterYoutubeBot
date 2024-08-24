@@ -3,6 +3,7 @@ services:
   spring_boot_app:
     container_name: telegram-bot
     image: eclipse-temurin:21-alpine
+    restart: unless-stopped
   # need to insert your own secrets and addresses
     environment:
       google.clientId: 149242102535-5uo3kngi681dsqp97d6kocntg8esh0ib.apps.googleusercontent.com
